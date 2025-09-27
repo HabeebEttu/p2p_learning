@@ -22,6 +22,7 @@ public class Profile {
     private User user;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "user_rank")
     private Rank rank;
 
     private String bio;

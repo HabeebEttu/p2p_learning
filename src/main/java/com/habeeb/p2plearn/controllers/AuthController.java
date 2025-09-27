@@ -8,6 +8,7 @@ import com.habeeb.p2plearn.models.Rank;
 import com.habeeb.p2plearn.models.User;
 import com.habeeb.p2plearn.repositories.ProfileRepository;
 import com.habeeb.p2plearn.repositories.UserRepository;
+import com.habeeb.p2plearn.services.CustomUserDetailsService;
 import com.habeeb.p2plearn.utils.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,17 +30,20 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ProfileRepository profileRepository;
+    private final CustomUserDetailsService customUserDetailsService;
 
     public AuthController(AuthenticationManager authManager,
                           JwtUtil jwtUtil,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
-                          ProfileRepository profileRepository) {
+                          ProfileRepository profileRepository,
+                          CustomUserDetailsService customUserDetailsService) {
         this.authManager = authManager;
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.profileRepository = profileRepository;
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     @PostMapping("/login")
@@ -50,10 +54,14 @@ public class AuthController {
 
         UserDetails user = (UserDetails) authentication.getPrincipal();
 
+
+        User  userEntity = userRepository.findByUsername(user.getUsername()).get();
+
+
         AuthResponse response = new AuthResponse(
                 jwtUtil.generateToken(user),
                 user.getUsername(),
-                ((User) user).getEmail()
+                userEntity.getEmail()
         );
 
         return ResponseEntity.ok(response);
