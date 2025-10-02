@@ -4,12 +4,9 @@ import com.habeeb.p2plearn.models.Level;
 import com.habeeb.p2plearn.models.Question;
 import com.habeeb.p2plearn.models.QuestionCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import java.util.List;
 
-@Repository
-public interface QuestionRepository extends JpaRepository<Question,Long> {
-    Optional<Question> findByCategory(QuestionCategory category);
-    Optional<Question> findByDifficulty(Level difficulty);
+public interface QuestionRepository extends JpaRepository<Question, Long> {
+    List<Question> findByCategoryAndDifficulty(QuestionCategory category, Level difficulty);
 }

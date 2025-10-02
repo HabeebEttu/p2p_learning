@@ -30,14 +30,14 @@ public class Question {
     )
     @MapKeyColumn(name = "option_key")
     @Column(name = "option_value")
-    private Map<String, String> options = new HashMap<>();
-
+    private Map<Character, String> options = new HashMap<>();
+    @Column(name = "answer")
     @NotNull
-    private String correctOption; // store "A", "B", "C", etc.
-    // private String explanation;
+    private Character answer;
     @NotNull
     @Enumerated(EnumType.STRING)
     private QuestionCategory category;
     @NotNull
+    @Enumerated(EnumType.STRING)
     private Level difficulty;
 }

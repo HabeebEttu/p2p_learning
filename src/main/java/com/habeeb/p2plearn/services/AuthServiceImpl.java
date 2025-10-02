@@ -46,10 +46,11 @@ public class AuthServiceImpl implements AuthService {
 
         UserDetails user = (UserDetails) authentication.getPrincipal();
 
+        User userEntity = userRepository.findByUsername(user.getUsername()).get();
         return new AuthResponse(
                 jwtUtil.generateToken(user),
                 user.getUsername(),
-                ((User) user).getEmail()
+                userEntity.getEmail()
         );
     }
 
