@@ -43,6 +43,9 @@ public class Profile {
     @OneToMany(mappedBy = "followed", cascade = CascadeType.ALL)
     private Set<Follow> followers = new HashSet<>();
 
+    private int xp = 0;
+
+
     @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL)
     private Set<Follow> following = new HashSet<>();
 

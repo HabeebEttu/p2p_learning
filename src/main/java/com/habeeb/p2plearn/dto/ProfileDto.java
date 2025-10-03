@@ -1,12 +1,16 @@
 package com.habeeb.p2plearn.dto;
 
+import com.habeeb.p2plearn.models.Profile;
+import com.habeeb.p2plearn.models.Rank;
+
+import java.util.List;
+
 public record ProfileDto(
-        Long id,
         String bio,
         String avatarUrl,
-        String rank,
+        Rank rank,
         int xp,
-        int followersCount,
-        int followingCount
+        List<Profile> followers,
+        List<Profile> following
 ) {
 }

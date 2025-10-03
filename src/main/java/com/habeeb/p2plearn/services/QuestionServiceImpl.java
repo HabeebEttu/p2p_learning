@@ -38,7 +38,17 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public String updateQuestion(QuestionDto question, Long questionId) {
 
-
+        Question q = questionRepository.findById(questionId).orElseThrow(()->new RuntimeException("Question not found"));
+        q.setQuestionText(question.questionText());
+        q.setCategory(question.category());
+        q.setOptions(question.options());
+        q.setDifficulty(question.difficulty());
+        q.setAnswer(question.answer());
+        if(validateOptions(q.getOptions()) && q.getOptions().containsKey(q.getAnswer())){
+            questionRepository.save(q);}
+        else {
+            throw new IllegalArgumentException("Each question must have exactly 4 options (A, B, C, D) and the answer must be one of the options.");
+        }
         return "";
     }
 
