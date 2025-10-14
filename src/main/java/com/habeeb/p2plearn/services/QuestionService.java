@@ -1,19 +1,19 @@
 package com.habeeb.p2plearn.services;
 
-import com.habeeb.p2plearn.dto.QuestionDto;
+import com.habeeb.p2plearn.dto.QuestionCreationRequestDto;
 
 import java.util.List;
 
 public interface QuestionService {
 
-    String createQuestion(QuestionDto question);
+    String createQuestion(QuestionCreationRequestDto question);
 
-    String updateQuestion(QuestionDto question, Long questionId);
+    String updateQuestion(QuestionCreationRequestDto question, Long questionId);
 
     String deleteQuestion(Long questionId);
 
-    List<QuestionDto> getAllQuestions();
+    List<QuestionCreationRequestDto> getAllQuestions();
 
 
-    void createQuestions(List<QuestionDto> questions);
+    void createQuestions(List<QuestionCreationRequestDto> questions);
 }

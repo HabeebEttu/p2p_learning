@@ -8,6 +8,7 @@ import com.habeeb.p2plearn.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ProfileService {
@@ -19,9 +20,7 @@ public class ProfileService {
         this.profileRepository = profileRepository;
     }
     public ProfileDto convertProfileToDto(Profile profile){
-        List<Profile> followers = profile.getFollowers().stream().map(Follow::getFollower).toList();
-        List<Profile> following = profile.getFollowing().stream().map(Follow::getFollowed).toList();
-        return new ProfileDto(profile.getBio(),profile.getAvatarUrl(),profile.getRank(),profile.getXp(),followers,following);
+        return new ProfileDto(profile.getBio(),profile.getAvatarUrl(),profile.getRank(),profile.getXp(),profile.getFollowers(),profile.getFollowing(),profile.getFriends(),profile.getFriendRequests());
     }
 
 
@@ -32,7 +31,15 @@ public class ProfileService {
     }
 
     public void updateProfile(Long userId, ProfileDto profileDto) {
-
-        
+        Profile p = profileRepository.findByUserId(userId).orElseThrow(()->new RuntimeException("Enter a proper user Id"));
+        p.setRank(profileDto.rank());
+        p.setXp(profileDto.xp());
+        p.setBio(profileDto.bio());
+        p.setAvatarUrl(profileDto.avatarUrl());
+        p.setFollowers(profileDto.followers());
+        p.setFollowing(profileDto.following());
+        p.setFriendRequests(profileDto.friendRequests());
+        p.setFriends(profileDto.friends());
     }
+
 }

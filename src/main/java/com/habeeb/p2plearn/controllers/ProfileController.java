@@ -1,7 +1,6 @@
 package com.habeeb.p2plearn.controllers;
 
 import com.habeeb.p2plearn.dto.ProfileDto;
-import com.habeeb.p2plearn.models.Profile;
 import com.habeeb.p2plearn.services.ProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +15,7 @@ public class ProfileController {
     }
     @GetMapping("/{userId}")
     public ResponseEntity<ProfileDto> getProfile(@PathVariable Long userId){
-        ProfileDto dto = profileService.getProfileById(userId);;
+        ProfileDto dto = profileService.getProfileById(userId);
         return ResponseEntity.ok(dto);
     }
     @PutMapping("/{userId}")
@@ -24,6 +23,7 @@ public class ProfileController {
         profileService.updateProfile(userId,profileDto);
         return ResponseEntity.ok("profile updated successfully");
     }
+
 
 
 }

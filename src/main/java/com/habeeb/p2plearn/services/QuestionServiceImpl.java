@@ -1,6 +1,6 @@
 package com.habeeb.p2plearn.services;
 
-import com.habeeb.p2plearn.dto.QuestionDto;
+import com.habeeb.p2plearn.dto.QuestionCreationRequestDto;
 import com.habeeb.p2plearn.models.Question;
 import com.habeeb.p2plearn.repositories.QuestionRepository;
 import org.springframework.stereotype.Service;
@@ -15,12 +15,12 @@ public class QuestionServiceImpl implements QuestionService {
     public QuestionServiceImpl(QuestionRepository questionRepository) {
         this.questionRepository = questionRepository;
     }
-    private QuestionDto convertTODto(Question q){
-        QuestionDto dto = new QuestionDto(q.getQuestionText(),q.getOptions(),q.getAnswer(),q.getCategory(),q.getDifficulty());
+    private QuestionCreationRequestDto convertTODto(Question q){
+        QuestionCreationRequestDto dto = new QuestionCreationRequestDto(q.getQuestionText(),q.getOptions(),q.getAnswer(),q.getCategory(),q.getDifficulty());
         return dto;
     }
     @Override
-    public String createQuestion(QuestionDto question) {
+    public String createQuestion(QuestionCreationRequestDto question) {
         Question q = new Question();
         q.setQuestionText(question.questionText());
         q.setCategory(question.category());
@@ -36,7 +36,7 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public String updateQuestion(QuestionDto question, Long questionId) {
+    public String updateQuestion(QuestionCreationRequestDto question, Long questionId) {
 
         Question q = questionRepository.findById(questionId).orElseThrow(()->new RuntimeException("Question not found"));
         q.setQuestionText(question.questionText());
@@ -61,7 +61,7 @@ public class QuestionServiceImpl implements QuestionService {
         return "";
     }
     @Override
-    public List<QuestionDto> getAllQuestions() {
+    public List<QuestionCreationRequestDto> getAllQuestions() {
         return questionRepository.findAll().stream().map(this::convertTODto).toList();
     }
     private boolean validateOptions(Map<Character, String> options) {
@@ -76,8 +76,8 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public void createQuestions(List<QuestionDto> questions) {
-        for(QuestionDto question : questions){
+    public void createQuestions(List<QuestionCreationRequestDto> questions) {
+        for(QuestionCreationRequestDto question : questions){
 
             Question q = new Question();
             q.setQuestionText(question.questionText());

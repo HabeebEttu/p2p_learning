@@ -1,6 +1,5 @@
 package com.habeeb.p2plearn.models;
 
-import com.habeeb.p2plearn.models.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,15 +37,15 @@ public class Profile {
     private Set<Profile> friends = new HashSet<>();
 
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL)
-    private Set<FriendRequest> friendRequests = new HashSet<>();
+    private List<FriendRequest> friendRequests = new ArrayList<>();
 
     @OneToMany(mappedBy = "followed", cascade = CascadeType.ALL)
-    private Set<Follow> followers = new HashSet<>();
+    private List<Follow> followers = new ArrayList<>();
 
     private int xp = 0;
 
 
     @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL)
-    private Set<Follow> following = new HashSet<>();
+    private List<Follow> following = new ArrayList<>();
 
 }
