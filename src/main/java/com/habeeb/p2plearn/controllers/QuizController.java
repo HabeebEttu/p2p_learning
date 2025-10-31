@@ -26,6 +26,7 @@ public class QuizController {
     public ResponseEntity<Integer> submitQuiz(@PathVariable Long userId, @RequestBody QuizSubmission quizSubmission){
         return ResponseEntity.ok(quizService.submitQuiz(userId,quizSubmission));
     }
+    
 
 
 }

@@ -28,5 +28,5 @@ public class FriendRequest {
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime createdAt;
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
-    private LocalDateTime rspondedAt;
+    private LocalDateTime respondedAt;
 }

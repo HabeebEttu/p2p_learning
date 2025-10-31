@@ -31,7 +31,7 @@ public class Article {
     @Column( name = "cover_img_url")
     private String coverImgUrl;
     @Transient
-    private Long likes = 0L;
+    private Long likes =0L;
     @Transient
     private Long dislikes=0L;
     @Transient
@@ -43,7 +43,7 @@ public class Article {
     @NotNull
     private String title;
     private String body;
-    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true,mappedBy = "post")
+    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true,mappedBy = "article")
     private List<Comment> comments;
 
     private String toSlug(String title){

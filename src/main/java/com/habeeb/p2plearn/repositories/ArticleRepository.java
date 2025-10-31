@@ -13,6 +13,6 @@ public interface ArticleRepository extends JpaRepository<Article,Long> {
     List<Article> findByUserId(Long userId);
     void deleteBySlug(String slug);
     List<Article> findByTitleContainingIgnoreCase(String keyword);
-    List<Article> findByContentContainingIgnoreCase(String keyword);
-    List<Article> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(String titleKeyword, String contentKeyword);
+    List<Article> findByBodyContainingIgnoreCase(String keyword);
+    List<Article> findByTitleContainingIgnoreCaseOrBodyContainingIgnoreCase(String titleKeyword, String contentKeyword);
 }

@@ -33,6 +33,11 @@ public class UserService {
         );
         return convertTODto(user);
     }
+    public User findByUsername(String userName){
+        return userRepository.findByUsername(userName).orElseThrow(
+                () -> new RuntimeException("User not found incorrect username entered")
+        );
+    }
 
     public UserDto updateUser(Long userId, UserDto userDto) {
         User user = userRepository.findById(userId).orElseThrow(

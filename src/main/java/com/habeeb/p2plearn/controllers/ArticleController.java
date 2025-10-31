@@ -2,6 +2,8 @@ package com.habeeb.p2plearn.controllers;
 
 import com.habeeb.p2plearn.dto.ArticlePost;
 import com.habeeb.p2plearn.dto.ArticleResponse;
+import com.habeeb.p2plearn.dto.CommentPost;
+import com.habeeb.p2plearn.dto.CommentResponse;
 import com.habeeb.p2plearn.services.ArticleService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -56,16 +58,24 @@ public class ArticleController {
     }
 
 
-//    @GetMapping("/popular")
-//    public ResponseEntity<List<ArticleResponse>> getAllArticlesByPopularity() {
-//        return ResponseEntity.ok(articleService.getAllByPopularity());
-//    }
+
     @GetMapping("/search")
     public ResponseEntity<List<ArticleResponse>> searchArticles(@RequestParam String query) {
         return ResponseEntity.ok(articleService.searchArticles(query));
     }
 
 
-    // TODO: Implement category, tag, and search endpoints
+    @PostMapping("/{slug}/comment")
+    public ResponseEntity<String> postComment(@PathVariable String slug, @RequestBody CommentPost comment){
+        articleService.commentArticle(slug,comment);
+        return ResponseEntity.ok("Comment submitted successfully");
+    }
+    @GetMapping("/comment/{slug}")
+    public ResponseEntity<List<CommentResponse>> getCommentsForArticle(@PathVariable String slug){
+        return ResponseEntity.ok(articleService.getArticleComments(slug));
+
+    }
+
+
 
 }
