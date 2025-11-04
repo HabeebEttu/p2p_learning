@@ -24,7 +24,7 @@ public class SecurityConfig {
     public SecurityFilterChain filerChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/health/**","/").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/health/**", "/", "/VAADIN/**", "/favicon.ico", "/home","/auth/**","/dashboard/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);

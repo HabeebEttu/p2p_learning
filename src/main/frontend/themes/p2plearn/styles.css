@@ -1,0 +1,19 @@
+
+vaadin-text-field::part(input-field),
+vaadin-password-field::part(input-field),
+vaadin-email-field::part(input-field) {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    color: white;
+}
+
+vaadin-text-field::part(input-field)::placeholder,
+vaadin-password-field::part(input-field)::placeholder,
+vaadin-email-field::part(input-field)::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+.search::placeholder{
+color: rgba(255, 255, 255, 0.8);
+font-size:15px
+}
