@@ -13,7 +13,3 @@ vaadin-password-field::part(input-field)::placeholder,
 vaadin-email-field::part(input-field)::placeholder {
     color: rgba(255, 255, 255, 0.5);
 }
-.search::placeholder{
-color: rgba(255, 255, 255, 0.8);
-font-size:15px
-}

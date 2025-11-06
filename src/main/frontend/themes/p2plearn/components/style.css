@@ -1,0 +1,6 @@
+:host ::placeholder {
+  color: rgba(220,220,220,0.8);           /* Change color */
+  font-size: 14px;       /* Change font size */
+      /* Make it italic */
+  opacity: 1;            /* Ensure it’s visible */
+}
