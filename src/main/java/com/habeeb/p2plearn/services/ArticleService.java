@@ -36,6 +36,9 @@ public class ArticleService {
     return convertToDto(a);
 
     }
+    private void likeArticle(){
+
+    }
 
     public void createArticle(ArticlePost articleDto) {
         Article a  = new Article();

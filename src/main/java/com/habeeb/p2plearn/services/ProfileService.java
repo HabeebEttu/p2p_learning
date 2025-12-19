@@ -20,7 +20,7 @@ public class ProfileService {
         this.profileRepository = profileRepository;
     }
     public ProfileDto convertProfileToDto(Profile profile){
-        return new ProfileDto(profile.getBio(),profile.getAvatarUrl(),profile.getRank(),profile.getXp(),profile.getFollowers(),profile.getFollowing(),profile.getFriends(),profile.getFriendRequests());
+        return new ProfileDto(profile.getBio(),profile.getAvatarUrl(),profile.getRank(),profile.getFirstName(),profile.getLastName(),profile.getXp(),profile.getFollowers(),profile.getFollowing(),profile.getFriends(),profile.getFriendRequests());
     }
 
 
@@ -30,16 +30,23 @@ public class ProfileService {
         return convertProfileToDto(p);
     }
 
-    public void updateProfile(Long userId, ProfileDto profileDto) {
+    public Profile updateProfile(Long userId, ProfileDto profileDto, String avatarUrl) {
         Profile p = profileRepository.findByUserId(userId).orElseThrow(()->new RuntimeException("Enter a proper user Id"));
-        p.setRank(profileDto.rank());
-        p.setXp(profileDto.xp());
+
         p.setBio(profileDto.bio());
-        p.setAvatarUrl(profileDto.avatarUrl());
-        p.setFollowers(profileDto.followers());
-        p.setFollowing(profileDto.following());
-        p.setFriendRequests(profileDto.friendRequests());
-        p.setFriends(profileDto.friends());
+        p.setFirstName(profileDto.firstName());
+        p.setLastName(profileDto.lastName());
+        if (avatarUrl != null && !avatarUrl.isEmpty()) {
+            p.setAvatarUrl(avatarUrl);
+        }
+        profileRepository.save(p);
+        return p;
+    }
+    public void updateAvatar(Long userId, String avatarUrl) {
+        Profile p = profileRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
+        p.setAvatarUrl(avatarUrl);
+        profileRepository.save(p);
     }
 
 }

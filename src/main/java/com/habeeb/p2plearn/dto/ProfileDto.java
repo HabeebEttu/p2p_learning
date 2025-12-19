@@ -12,6 +12,8 @@ public record ProfileDto(
         String bio,
         String avatarUrl,
         Rank rank,
+        String firstName,
+        String lastName,
         int xp,
         List<Follow> followers,
         List<Follow> following,

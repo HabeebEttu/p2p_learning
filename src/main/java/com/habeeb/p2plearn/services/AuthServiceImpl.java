@@ -49,8 +49,7 @@ public class AuthServiceImpl implements AuthService {
         User userEntity = userRepository.findByUsername(user.getUsername()).get();
         return new AuthResponse(
                 jwtUtil.generateToken(user),
-                user.getUsername(),
-                userEntity.getEmail()
+                userEntity
         );
     }
 
@@ -72,7 +71,8 @@ public class AuthServiceImpl implements AuthService {
 
         profile.setUser(user);
         profile.setRank(Rank.NOVICE);
-
+        profile.setFirstName(request.firstname());
+        profile.setLastName(request.lastname());
         userRepository.save(user);
     }
 }
