@@ -13,6 +13,7 @@ import com.habeeb.p2plearn.utils.JwtUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,17 +26,20 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ProfileRepository profileRepository;
+    private final UserService userService;
 
     public AuthServiceImpl(AuthenticationManager authManager,
                            JwtUtil jwtUtil,
                            UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
-                           ProfileRepository profileRepository) {
+                           ProfileRepository profileRepository,
+                           UserService userService) {
         this.authManager = authManager;
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.profileRepository = profileRepository;
+        this.userService = userService;
     }
 
     @Override
@@ -74,5 +78,12 @@ public class AuthServiceImpl implements AuthService {
         profile.setFirstName(request.firstname());
         profile.setLastName(request.lastname());
         userRepository.save(user);
+    }
+
+    @Override
+    public User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String userName = auth.getName();
+        return userService.findByUsername(userName);
     }
 }
