@@ -1,6 +1,8 @@
 package com.habeeb.p2plearn.services;
 
+import com.habeeb.p2plearn.dto.ProfileDto;
 import com.habeeb.p2plearn.dto.UserDto;
+import com.habeeb.p2plearn.models.Profile;
 import com.habeeb.p2plearn.models.User;
 import com.habeeb.p2plearn.repositories.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,9 +19,12 @@ public class UserService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
-
+    private ProfileDto convertProfileToDto(Profile profile){
+        return new ProfileDto(profile.getBio(),profile.getAvatarUrl(),profile.getRank(),profile.getFirstName(),profile.getLastName(),profile.getXp(),profile.getFollowers(),profile.getFollowing(),profile.getFriends(),profile.getFriendRequests());
+    }
     private UserDto convertTODto(User user) {
-        return new UserDto(user.getId(), user.getUsername(), user.getEmail());
+
+        return new UserDto(user.getId(), user.getUsername(), user.getEmail(),convertProfileToDto(user.getProfile()));
     }
 
     public List<UserDto> getAllUsers() {
