@@ -1,5 +1,6 @@
 package com.habeeb.p2plearn.security;
 
+import com.habeeb.p2plearn.services.SessionService;
 import com.habeeb.p2plearn.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,12 +18,14 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtils;
     private final UserDetailsService userDetailsService;
+    private final SessionService sessionService;
 
-
-    public JwtAuthenticationFilter(JwtUtil jwtUtils, UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtils, UserDetailsService userDetailsService, SessionService sessionService) {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
+        this.sessionService = sessionService;
     }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
@@ -38,7 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             username = jwtUtils.extractUsername(token);
             if(username !=null && SecurityContextHolder.getContext().getAuthentication() ==null){
                 var userDetails = userDetailsService.loadUserByUsername(username);
-                if(jwtUtils.validateToken(token,userDetails)){
+                if (jwtUtils.validateToken(token, userDetails) &&
+                        sessionService.isValidSession(token)) {
                     var authToken = new org.springframework.security.authentication.
                             UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

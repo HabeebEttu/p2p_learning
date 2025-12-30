@@ -6,10 +6,13 @@ import com.habeeb.p2plearn.dto.RegisterRequest;
 import com.habeeb.p2plearn.exceptions.UserAlreadyExistsException;
 import com.habeeb.p2plearn.models.Profile;
 import com.habeeb.p2plearn.models.Rank;
+import com.habeeb.p2plearn.models.Session;
 import com.habeeb.p2plearn.models.User;
 import com.habeeb.p2plearn.repositories.ProfileRepository;
 import com.habeeb.p2plearn.repositories.UserRepository;
 import com.habeeb.p2plearn.utils.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,23 +30,21 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final ProfileRepository profileRepository;
     private final UserService userService;
+    private final SessionServiceImpl sessionService;
 
-    public AuthServiceImpl(AuthenticationManager authManager,
-                           JwtUtil jwtUtil,
-                           UserRepository userRepository,
-                           PasswordEncoder passwordEncoder,
-                           ProfileRepository profileRepository,
-                           UserService userService) {
+    public AuthServiceImpl(AuthenticationManager authManager, JwtUtil jwtUtil, UserRepository userRepository, PasswordEncoder passwordEncoder, ProfileRepository profileRepository, UserService userService, SessionServiceImpl sessionService) {
         this.authManager = authManager;
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.profileRepository = profileRepository;
         this.userService = userService;
+        this.sessionService = sessionService;
     }
 
     @Override
-    public AuthResponse login(LoginRequest request) {
+    @Transactional
+    public AuthResponse login(LoginRequest request, HttpServletRequest httpRequest) {
         Authentication authentication = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.username(), request.password())
         );
@@ -51,35 +52,56 @@ public class AuthServiceImpl implements AuthService {
         UserDetails user = (UserDetails) authentication.getPrincipal();
 
         User userEntity = userRepository.findByUsername(user.getUsername()).get();
-        return new AuthResponse(
-                jwtUtil.generateToken(user),
-                userEntity
-        );
+        String token = jwtUtil.generateToken(userEntity);
+
+
+        Session session = sessionService.createSession(userEntity, token, httpRequest);
+
+        return new AuthResponse(token, userEntity);
     }
 
     @Override
-    public void register(RegisterRequest request) {
-        if (userRepository.findByUsername(request.username()).isPresent()) {
-            throw new UserAlreadyExistsException("Username already taken");
-        } else if (userRepository.findByEmail(request.email()).isPresent()) {
-            throw new UserAlreadyExistsException("This email has already been used");
+    @Transactional
+    public AuthResponse register(RegisterRequest registerRequest, HttpServletRequest request) {
+        // Check if user exists
+        if (userRepository.existsByUsername(registerRequest.username())) {
+            throw new RuntimeException("Username already exists");
         }
 
-        User user = new User();
-        Profile profile = new Profile();
+        if (userRepository.existsByEmail(registerRequest.email())) {
+            throw new RuntimeException("Email already exists");
+        }
 
-        user.setUsername(request.username());
-        user.setHashPassword(passwordEncoder.encode(request.password()));
-        user.setEmail(request.email());
+        // Create user
+        User user = User.builder()
+                .username(registerRequest.username())
+                .email(registerRequest.email())
+                .hashPassword(passwordEncoder.encode(registerRequest.password()))
+                .build();
+
+        // Create profile
+        Profile profile = Profile.builder()
+                .user(user)
+                .xp(0)
+                .rank(Rank.NOVICE)
+                .build();
+
         user.setProfile(profile);
+        user = userRepository.save(user);
 
-        profile.setUser(user);
-        profile.setRank(Rank.NOVICE);
-        profile.setFirstName(request.firstname());
-        profile.setLastName(request.lastname());
-        userRepository.save(user);
+        // Generate JWT token
+        String token = jwtUtil.generateToken(user);
+
+        // ✅ Create session
+        Session session = sessionService.createSession(user, token, request);
+
+        return new AuthResponse(token, user);
     }
-
+    @Override
+    @Transactional
+    public void logout(String token) {
+        sessionService.invalidateSession(token);
+    }
     @Override
     public User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
