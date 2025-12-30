@@ -11,6 +11,9 @@ import java.util.*;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Data
+@Builder
 public class Profile {
 
     @Id
