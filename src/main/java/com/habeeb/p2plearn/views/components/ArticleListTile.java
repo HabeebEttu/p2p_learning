@@ -37,31 +37,35 @@ public class ArticleListTile extends Div {
                     .set("font-size","14px")
                     .set("line-height","20px")
                     .set("margin-top","8px")
+                    .set("color","#6b7280")
                     .set("gap","18px");
             add(new Span(){{
                 getStyle().set("display","flex")
                         .set("align-items","center").set("gap","4px");
                 Icon userIcon  = VaadinIcon.USER.create();
                 userIcon.setSize("14px");
-                setText("Sarah Chen");
                 add(userIcon);
-            }});
-            add(new Span(){{
-                getStyle().set("display","flex")
-                        .set("align-items","center").set("gap","4px");
-                Icon starIcon  = VaadinIcon.STAR.create();
-                starIcon.setSize("14px");
-                setText("Sarah Chen");
-                add(starIcon);
+                add("Sarah Chen");
+
             }});
             add(new Span(){{
                 getStyle().set("display","flex")
                         .set("align-items","center").set("gap","4px");
                 Icon clockIcon = VaadinIcon.CLOCK.create();
                 clockIcon.setSize("14px");
-                setText("5 min read");
                 add(clockIcon);
+                add("5 min read");
+
             }});
+            add(new Span(){{
+                getStyle().set("display","flex")
+                        .set("align-items","center").set("gap","4px");
+                Icon starIcon  = VaadinIcon.STAR.create();
+                starIcon.setSize("14px");
+                add(starIcon);
+                add("+50 XP");
+            }});
+
         }});
 
         add(articleDetails);

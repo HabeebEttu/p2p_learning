@@ -30,6 +30,8 @@ public class Article {
     private String slug;
     @Column( name = "cover_img_url")
     private String coverImgUrl;
+    @Enumerated(EnumType.STRING)
+    private ArticleCategory category;
     @Transient
     private Long likes =0L;
     @Transient
@@ -42,7 +44,10 @@ public class Article {
     private LocalDateTime updatedAt;
     @NotNull
     private String title;
-    private String body;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String bodyMarkdown;
+    @Column(columnDefinition = "TEXT")
+    private String bodyHtml;
     @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true,mappedBy = "article")
     private List<Comment> comments;
 
@@ -63,7 +68,17 @@ public class Article {
         if (this.slug == null || this.slug.isEmpty()) {
             this.slug = toSlug(this.title);
         }
+        if (this.likes == null) {
+            this.likes = 0L;
+        }
+        if (this.dislikes == null) {
+            this.dislikes = 0L;
+        }
+        if (this.views == null) {
+            this.views = 0L;
+        }
     }
+
 
     @PreUpdate
     protected void onUpdate() {
