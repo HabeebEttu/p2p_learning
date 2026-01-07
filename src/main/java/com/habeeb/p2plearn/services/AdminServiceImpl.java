@@ -41,13 +41,14 @@ public class AdminServiceImpl implements AdminService{
     }
 
     @Override
-    public void editArticles(Long articleId) {
+    public ArticleResponse editArticles(Long articleId,ArticlePost article,String coverImgUrl) {
 
+       return articleService.editArticles(articleId,article,coverImgUrl);
     }
 
     @Override
     public void deleteArticles(Long articleId) {
-
+        articleService.deleteArticleById(articleId);
     }
 
     @Override

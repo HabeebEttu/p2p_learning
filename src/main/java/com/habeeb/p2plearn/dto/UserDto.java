@@ -4,6 +4,7 @@ public record UserDto(
         Long id,
         String username,
         String email,
+        boolean admin,
         ProfileDto profile
 ) {
 }

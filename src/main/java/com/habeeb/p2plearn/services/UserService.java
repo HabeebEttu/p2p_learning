@@ -24,7 +24,7 @@ public class UserService {
     }
     private UserDto convertTODto(User user) {
 
-        return new UserDto(user.getId(), user.getUsername(), user.getEmail(),convertProfileToDto(user.getProfile()));
+        return new UserDto(user.getId(), user.getUsername(), user.getEmail(),user.isAdmin(),convertProfileToDto(user.getProfile()));
     }
 
     public List<UserDto> getAllUsers() {

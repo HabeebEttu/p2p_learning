@@ -9,7 +9,7 @@ public interface AdminService {
 void addUser(Long userId);
 void deleteUser(Long userId);
 void blockUser(Long userId);
-void editArticles(Long articleId);
+ArticleResponse editArticles(Long articleId,ArticlePost a,String coverImageUrl);
 void deleteArticles(Long articleId);
 ArticleResponse createArticle(ArticlePost a,String coverImageUrl);
 AdminDashboardResponse getDashboardData();

@@ -57,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
 
         Session session = sessionService.createSession(userEntity, token, httpRequest);
 
-        return new AuthResponse(token, userEntity);
+        return new AuthResponse(token, session.getExpiryDate(),userEntity);
     }
 
     @Override
@@ -89,13 +89,11 @@ public class AuthServiceImpl implements AuthService {
         user.setProfile(profile);
         user = userRepository.save(user);
 
-        // Generate JWT token
         String token = jwtUtil.generateToken(user);
 
-        // ✅ Create session
         Session session = sessionService.createSession(user, token, request);
 
-        return new AuthResponse(token, user);
+        return new AuthResponse(token,session.getExpiryDate(), user);
     }
     @Override
     @Transactional
