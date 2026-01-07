@@ -87,7 +87,22 @@ public class Dashboard extends Div {
         add(new ArticleListTile());
         add(new ArticleListTile());
     }});
-
+        leftColumn.add(new Div(){
+            {
+                getStyle().set("padding", "1.5rem")
+                        .set("background", "white")
+                        .set("width", "100%")
+                        .set("height", "fit-content")
+                        .set("display", "flex")
+                        .set("flex-direction", "column")
+                        .set("gap", "15px")
+                        .set("border-radius", "15px")
+                        .set("max-width", "930px")
+                        .set("box-shadow", " 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1)");
+                add(new H1("Featured Quizzes") {{
+                    getStyle().set("color", "black").set("font-weight", "semibold").set("font-size", "20px");
+                }});
+            }});
         container.add(leftColumn);
         container.add(rightColumn);
 
