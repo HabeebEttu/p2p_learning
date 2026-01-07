@@ -9,6 +9,7 @@ import com.habeeb.p2plearn.services.AdminServiceImpl;
 import com.habeeb.p2plearn.services.AuthServiceImpl;
 import com.habeeb.p2plearn.services.FileStorageServiceImpl;
 import com.habeeb.p2plearn.services.SessionService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -45,7 +46,7 @@ public class AdminController {
             @RequestPart("article") ArticlePost articlePost,
             @RequestPart(value = "coverImage", required = false) MultipartFile coverImage
     ) {
-        // 1. Check admin
+
         User user = authService.getCurrentUser();
         if (!user.isAdmin()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -77,6 +78,39 @@ public class AdminController {
                     .body("Failed to upload image: " + e.getMessage());
         }
     }
+    @PostMapping(value = "/article/edit/{articleId}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> editArticle(@PathVariable Long articleId ,
+                                         @RequestPart("article") ArticlePost articlePost,
+                                         @RequestPart(value = "coverImage", required = false) MultipartFile coverImage, HttpServletRequest request){
+        User user = authService.getCurrentUser();
+        if (!user.isAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Admin access required");
+        }
+        try {
+            String coverImageUrl = null;
+
+
+            if (coverImage != null && !coverImage.isEmpty()) {
+                String contentType = coverImage.getContentType();
+                if (contentType == null || !contentType.startsWith("image/")) {
+                    return ResponseEntity.badRequest()
+                            .body("Only image files allowed");
+                }
+                if (coverImage.getSize() > 5 * 1024 * 1024) {
+                    return ResponseEntity.badRequest()
+                            .body("File must be less than 5MB");
+                }
+                coverImageUrl = fileStorageService.toPublicUrl(fileStorageService.store(coverImage, ImageTypes.ARTICLE_COVER),ImageTypes.ARTICLE_COVER);
+            }
+            ArticleResponse response = adminService.editArticles(articleId,articlePost,coverImageUrl);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to upload image: " + e.getMessage());
+        }
+    }
     @DeleteMapping("/user/{userId}")
     public ResponseEntity<String> deleteUser(@PathVariable Long userId){
         User user  = authService.getCurrentUser();
@@ -85,5 +119,15 @@ public class AdminController {
         return ResponseEntity.ok("User deleted successfully");
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to delete user");
+    }
+    @DeleteMapping("/article/delete/{articleId}")
+    public  ResponseEntity<?> deleteArticle(@PathVariable Long articleId){
+        User user = authService.getCurrentUser();
+        if(user.isAdmin()){
+            adminService.deleteArticles(articleId);
+            return ResponseEntity.ok("Article deleted successfully");
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to delete user not an admin");
+
     }
 }
