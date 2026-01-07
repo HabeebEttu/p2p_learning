@@ -16,7 +16,6 @@ public record ArticleResponse(
         long dislikes,
         List<Comment> comments,
         String bodyMarkdown,
-        String bodyHtml,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}

@@ -24,7 +24,6 @@ public class ArticleService {
     private final ArticleRepository articleRepository;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
-    private final MarkdownService markdownService;
 
     private ArticleResponse convertToDto(Article a) {
         return new ArticleResponse(
@@ -37,7 +36,6 @@ public class ArticleService {
                 a.getDislikes(),
                 a.getComments(),
                 a.getBodyMarkdown(),
-                a.getBodyHtml(),
                 a.getCreatedAt(),
                 a.getUpdatedAt()
         );
@@ -48,6 +46,17 @@ public class ArticleService {
                 .orElseThrow(() -> new RuntimeException("Article not found with slug: " + slug));
         return convertToDto(a);
     }
+    public ArticleResponse editArticles(Long articleId,ArticlePost article,String coverImgUrl) {
+        Article a = articleRepository.findById(articleId).orElseThrow(()->new RuntimeException("USer not found"));
+        a.setTitle(article.title());
+        a.setBodyMarkdown(article.body());
+        a.setCategory(article.category());
+        if(coverImgUrl != null) a.setCoverImgUrl(coverImgUrl);
+
+        articleRepository.save(a);
+        return convertToDto(a);
+    }
+
 
     public Article getArticleEntityBySlug(String slug) {
         return articleRepository.findBySlug(slug)
@@ -64,7 +73,6 @@ public class ArticleService {
 
         a.setBodyMarkdown(articleDto.body());
         a.setCategory(articleDto.category());
-        a.setBodyHtml(markdownService.convertToHtml(articleDto.body()));
         a.setTitle(articleDto.title());
         a.setCoverImgUrl(coverImageUrl);
         a.setUser(user);
@@ -80,10 +88,10 @@ public class ArticleService {
 
         a.setTitle(articlePost.title());
         a.setBodyMarkdown(articlePost.body());
-        a.setBodyHtml(markdownService.convertToHtml(articlePost.body()));
         a.setCoverImgUrl(coverImgUrl);
 
         Article updated = articleRepository.save(a);
+        System.out.println(updated.toString());
         return convertToDto(updated);
     }
 

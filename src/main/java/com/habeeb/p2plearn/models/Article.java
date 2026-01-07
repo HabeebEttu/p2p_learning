@@ -4,10 +4,7 @@ package com.habeeb.p2plearn.models;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.text.Normalizer;
 import java.time.LocalDateTime;
@@ -19,6 +16,7 @@ import java.util.Locale;
 @Table(name = "articles")
 @Getter
 @Setter
+@ToString
 public class Article {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,8 +44,6 @@ public class Article {
     private String title;
     @Column(nullable = false, columnDefinition = "TEXT")
     private String bodyMarkdown;
-    @Column(columnDefinition = "TEXT")
-    private String bodyHtml;
     @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true,mappedBy = "article")
     private List<Comment> comments;
 
@@ -83,5 +79,8 @@ public class Article {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+        if (this.slug == null || this.slug.isEmpty()) {
+            this.slug = toSlug(this.title);
+        }
     }
 }
