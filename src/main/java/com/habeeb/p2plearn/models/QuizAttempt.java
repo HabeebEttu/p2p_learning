@@ -1,55 +1,52 @@
 package com.habeeb.p2plearn.models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 @Entity
 @Table(name = "quiz_attempts")
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Data
-@Builder
 public class QuizAttempt {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "quiz_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quiz_id", nullable = false)
     private Quiz quiz;
 
-    @ElementCollection
-    @CollectionTable(
-            name = "quiz_attempt_answers",
-            joinColumns = @JoinColumn(name = "attempt_id")
-    )
-    @MapKeyColumn(name = "question_id")
-    @Column(name = "answer")
-    private Map<Long, Character> userAnswers = new HashMap<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    private Integer score;
+    @Column(nullable = false)
+    private Integer score; // percentage
 
+    @Column(nullable = false)
     private Integer totalQuestions;
 
+    @Column(nullable = false)
+    private Integer correctAnswers;
+
+    @Column(nullable = false)
+    private Boolean passed;
+
+    @Column(nullable = false)
     private Integer xpEarned;
 
-    private LocalDateTime completedAt;
-
-    private Boolean passed;
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    @Column(nullable = false)
+    private LocalDateTime attemptedAt;
 
     @PrePersist
     protected void onCreate() {
-        completedAt = LocalDateTime.now();
+        this.attemptedAt = LocalDateTime.now();
     }
 }

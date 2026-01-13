@@ -1,6 +1,5 @@
 package com.habeeb.p2plearn.controllers;
 
-import com.habeeb.p2plearn.dto.QuestionCreationRequestDto;
 import com.habeeb.p2plearn.services.QuestionServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

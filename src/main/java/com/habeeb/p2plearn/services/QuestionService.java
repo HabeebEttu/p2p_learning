@@ -1,7 +1,5 @@
 package com.habeeb.p2plearn.services;
 
-import com.habeeb.p2plearn.dto.QuestionCreationRequestDto;
-
 import java.util.List;
 
 public interface QuestionService {

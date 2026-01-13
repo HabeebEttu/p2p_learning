@@ -1,13 +1,12 @@
 package com.habeeb.p2plearn.models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "questions")
@@ -15,29 +14,27 @@ import java.util.Map;
 @Setter
 @NoArgsConstructor
 public class Question {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quiz_id", nullable = false)
+    private Quiz quiz;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String questionText;
 
-    @ElementCollection
-    @CollectionTable(
-            name = "question_options",
-            joinColumns = @JoinColumn(name = "question_id")
-    )
-    @MapKeyColumn(name = "option_key")
-    @Column(name = "option_value")
-    private Map<Character, String> options = new HashMap<>();
-    @Column(name = "answer")
-    @NotNull
-    private Character answer;
-    @NotNull
     @Enumerated(EnumType.STRING)
-    private QuestionCategory category;
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    private Level difficulty;
+    @Column(nullable = false)
+    private QuestionType type; // MULTIPLE_CHOICE, TRUE_FALSE
+
+    @Column(nullable = false)
+    private Integer points;
+
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<QuestionOption> options = new ArrayList<>();
+
+    @Column(nullable = false)
+    private Integer correctAnswerIndex; // Index of correct option
 }

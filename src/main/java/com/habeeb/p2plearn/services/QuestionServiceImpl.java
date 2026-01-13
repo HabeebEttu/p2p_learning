@@ -1,6 +1,5 @@
 package com.habeeb.p2plearn.services;
 
-import com.habeeb.p2plearn.dto.QuestionCreationRequestDto;
 import com.habeeb.p2plearn.models.Question;
 import com.habeeb.p2plearn.repositories.QuestionRepository;
 import org.springframework.stereotype.Service;
