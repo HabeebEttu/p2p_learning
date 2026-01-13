@@ -12,6 +12,9 @@ import com.habeeb.p2plearn.repositories.ArticleRepository;
 import com.habeeb.p2plearn.repositories.CommentRepository;
 import com.habeeb.p2plearn.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +32,8 @@ public class ArticleService {
         return new ArticleResponse(
                 a.getId(),
                 a.getUser().getId(),
+                a.getSlug(),
+                a.getUser().getProfile().getFirstName()+" "+a.getUser().getProfile().getLastName() ,
                 a.getCoverImgUrl(),
                 a.getTitle(),
                 a.getCategory(),
@@ -115,7 +120,12 @@ public class ArticleService {
                 .map(this::convertToDto)
                 .toList();
     }
+    public Page<ArticleResponse> getArticlesByPage(Long page){
+        Pageable pageable = PageRequest.of(Integer.parseInt(String.valueOf(page)),3);
+        Page<Article> articlePage = articleRepository.findAll(pageable);
+        return articlePage.map(this::convertToDto);
 
+    }
     public List<ArticleResponse> getAllByUserId(Long userId) {
         return articleRepository.findByUserId(userId)
                 .stream()

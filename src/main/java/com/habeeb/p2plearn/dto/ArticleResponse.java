@@ -9,6 +9,8 @@ import java.util.List;
 public record ArticleResponse(
         Long id,
         Long userId,
+        String slug,
+        String author,
         String coverImageUrl,
         String title,
         ArticleCategory category,

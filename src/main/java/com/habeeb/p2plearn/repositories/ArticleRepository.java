@@ -2,6 +2,8 @@ package com.habeeb.p2plearn.repositories;
 
 import com.habeeb.p2plearn.models.Article;
 import com.habeeb.p2plearn.models.ArticleCategory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,4 +17,5 @@ public interface ArticleRepository extends JpaRepository<Article,Long> {
     void deleteBySlug(String slug);
     List<Article> findByTitleContainingIgnoreCase(String keyword);
     List<Article> findByCategory(ArticleCategory category);
+    Page<Article> findAll(Pageable pageable);
 }

@@ -9,6 +9,7 @@ import com.habeeb.p2plearn.models.ImageTypes;
 import com.habeeb.p2plearn.services.ArticleService;
 import com.habeeb.p2plearn.services.FileStorageServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/articles")
@@ -149,5 +152,19 @@ public class ArticleController {
     public ResponseEntity<List<CommentResponse>> getArticleComments(@PathVariable String slug) {
         List<CommentResponse> comments = articleService.getArticleComments(slug);
         return ResponseEntity.ok(comments);
+    }
+    @GetMapping("/home")
+    public ResponseEntity<Map<String,?>> getHomeArticles(@RequestParam(defaultValue = "0")Long page){
+        Page<ArticleResponse> articlePage = articleService.getArticlesByPage(page);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("articles", articlePage.getContent());
+        response.put("currentPage", articlePage.getNumber());
+        response.put("totalItems", articlePage.getTotalElements());
+        response.put("totalPages", articlePage.getTotalPages());
+        response.put("hasNext", articlePage.hasNext());
+        response.put("hasPrevious", articlePage.hasPrevious());
+
+        return ResponseEntity.ok(response);
     }
 }

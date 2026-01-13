@@ -34,7 +34,7 @@ public class Profile {
 
     private String bio;
 
-    private String avatarUrl = "/static/default.png";
+    private String avatarUrl ;
 
     @ManyToMany
     @JoinTable(
