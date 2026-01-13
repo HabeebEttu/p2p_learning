@@ -1,6 +1,5 @@
 package com.habeeb.p2plearn.controllers;
 
-import com.habeeb.p2plearn.dto.AdminDashboardResponse;
 import com.habeeb.p2plearn.dto.ArticlePost;
 import com.habeeb.p2plearn.dto.ArticleResponse;
 import com.habeeb.p2plearn.models.ImageTypes;
@@ -19,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Path;
+import java.util.Objects;
 
 @RestController
 @RequestMapping(value = "/api/admin",produces = MediaType.APPLICATION_JSON_VALUE)
@@ -27,7 +26,6 @@ import java.nio.file.Path;
 public class AdminController {
     private final AdminServiceImpl adminService;
     private final AuthServiceImpl authService;
-    private final SessionService sessionService;
     private final FileStorageServiceImpl fileStorageService;
 
 
@@ -40,6 +38,18 @@ public class AdminController {
             return ResponseEntity.ok(adminService.getDashboardData());
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+    @PostMapping("/make/{userId}")
+    public ResponseEntity<?> makeAdmin(@PathVariable Long userId){
+        User user  = authService.getCurrentUser();
+        if(user.isAdmin()){
+            if(Objects.equals(userId, user.getId())){
+                return ResponseEntity.ok("User is already an admin");
+            }
+            adminService.makeAdmin(userId);
+            return ResponseEntity.ok("User is now an admin");
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User is not authorized to access this feature");
     }
     @PostMapping(value = "/article/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createArticle(
@@ -129,5 +139,27 @@ public class AdminController {
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to delete user not an admin");
 
+    }
+    @PostMapping("/revoke/{userId}")
+    public ResponseEntity<?> removeAdmin(@PathVariable Long userId){
+        User currentUser = authService.getCurrentUser();
+
+        if(!currentUser.isAdmin()){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Admin access required");
+        }
+
+        if(Objects.equals(userId, currentUser.getId())){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Cannot remove your own admin privileges");
+        }
+
+        try {
+            adminService.removeAdmin(userId);
+            return ResponseEntity.ok("Admin privileges removed");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
     }
 }

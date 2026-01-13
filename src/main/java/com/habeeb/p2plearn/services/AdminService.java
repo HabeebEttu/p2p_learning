@@ -4,6 +4,7 @@ import com.habeeb.p2plearn.dto.AdminDashboardResponse;
 import com.habeeb.p2plearn.dto.ArticlePost;
 import com.habeeb.p2plearn.dto.ArticleResponse;
 import com.habeeb.p2plearn.models.Article;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface AdminService {
 void addUser(Long userId);
@@ -13,4 +14,6 @@ ArticleResponse editArticles(Long articleId,ArticlePost a,String coverImageUrl);
 void deleteArticles(Long articleId);
 ArticleResponse createArticle(ArticlePost a,String coverImageUrl);
 AdminDashboardResponse getDashboardData();
+void makeAdmin(Long userId);
+void removeAdmin(Long userId);
 }

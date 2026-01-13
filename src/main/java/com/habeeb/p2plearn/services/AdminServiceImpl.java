@@ -1,10 +1,10 @@
 package com.habeeb.p2plearn.services;
 
 import com.habeeb.p2plearn.dto.*;
-import com.habeeb.p2plearn.models.Quiz;
 import com.habeeb.p2plearn.models.User;
 import com.habeeb.p2plearn.repositories.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -57,10 +57,32 @@ public class AdminServiceImpl implements AdminService{
     }
 
     @Override
+    @Transactional
     public AdminDashboardResponse getDashboardData() {
         List<UserDto> users = userService.getAllUsers();
         List<ArticleResponse> articles = articleService.getAllArticles();
         List<QuizResponseDto> quizzes = quizService.getAllQuizzes();
         return new AdminDashboardResponse(users , articles , quizzes);
+    }
+
+    @Override
+    @Transactional
+    public void makeAdmin(Long userId) {
+        User u = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        if(!u.isAdmin()){
+            u.setAdmin(true);
+        }
+        userRepository.save(u);
+    }
+    @Transactional
+    @Override
+    public void removeAdmin(Long userId) {
+        User u = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        if(u.isAdmin()){
+            u.setAdmin(false);
+            userRepository.save(u);
+        }
     }
 }
