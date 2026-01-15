@@ -27,7 +27,19 @@ public class QuizAttempt {
     private User user;
 
     @Column(nullable = false)
-    private Integer score; // percentage
+    private Integer score;
+
+    @Column(nullable = false)
+    private Integer maxScore;
+
+    @Column(nullable = false)
+    private Integer percentageScore;
+
+    @Column(nullable = false)
+    private Integer xpAwarded;
+
+    @Column(nullable = false)
+    private Integer timeTaken;
 
     @Column(nullable = false)
     private Integer totalQuestions;
