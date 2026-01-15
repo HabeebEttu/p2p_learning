@@ -3,6 +3,8 @@ package com.habeeb.p2plearn.services;
 import com.habeeb.p2plearn.dto.*;
 import com.habeeb.p2plearn.models.*;
 import com.habeeb.p2plearn.repositories.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class QuizServiceImpl implements QuizService {
 
     private final QuizRepository quizRepository;
@@ -20,194 +23,84 @@ public class QuizServiceImpl implements QuizService {
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
 
-    public QuizServiceImpl(
-            QuizRepository quizRepository,
-            QuestionRepository questionRepository,
-            QuizAttemptRepository quizAttemptRepository,
-            ProfileRepository profileRepository,
-            UserRepository userRepository) {
-        this.quizRepository = quizRepository;
-        this.questionRepository = questionRepository;
-        this.quizAttemptRepository = quizAttemptRepository;
-        this.profileRepository = profileRepository;
-        this.userRepository = userRepository;
-    }
-
+@Transactional
     @Override
-    @Transactional
-    public QuizResponseDto createQuiz(QuizCreationDto dto) {
-        List<Question> questions = questionRepository.findAllById(dto.questionIds());
+    public QuizResponse createQuiz(QuizPost quizPost, Long userId) {
+    User u = userRepository.findById(userId).orElseThrow(()->new RuntimeException("User not found"));
+    Quiz quiz = new Quiz();
+    quiz.setTitle(quizPost.title());
+    quiz.setDescription(quizPost.description());
+    quiz.setCategory(quizPost.category());
+    quiz.setTimeLimit(quizPost.timeLimit());
+    quiz.setPassingScore(quizPost.passingScore());
+    quiz.setXpReward(quizPost.xpReward());
+    quiz.setCreatedBy(u);
 
-        if (questions.size() != dto.questionIds().size()) {
-            throw new RuntimeException("Some questions were not found");
+    for (QuestionPost qp : quizPost.questions()) {
+        Question question = new Question();
+        question.setQuiz(quiz);
+        question.setQuestionText(qp.questionText());
+        question.setType(qp.type());
+        question.setPoints(qp.points());
+        question.setCorrectAnswerIndex(qp.correctAnswerIndex());
+
+        // Add options
+        for (int i = 0; i < qp.options().size(); i++) {
+            QuestionOption option = new QuestionOption();
+            option.setQuestion(question);
+            option.setOptionText(qp.options().get(i));
+            option.setOptionIndex(i);
+            question.getOptions().add(option);
         }
 
-        Quiz quiz = Quiz.builder()
-                .title(dto.title())
-                .description(dto.description())
-                .category(dto.category())
-                .difficulty(dto.difficulty())
-                .xpReward(dto.xpReward())
-                .timeLimit(dto.timeLimit())
-                .questions(questions)
-                .build();
-
-        quiz = quizRepository.save(quiz);
-
-        return convertToResponseDto(quiz);
+        quiz.getQuestions().add(question);
     }
 
-    @Override
-    public List<QuizResponseDto> getAllQuizzes() {
-        return quizRepository.findAll().stream()
-                .map(this::convertToResponseDto)
+    Quiz saved = quizRepository.save(quiz);
+    return convertToResponse(saved, true);
+    }
+    private QuizResponse convertToResponse(Quiz quiz, boolean includeAnswers) {
+        List<QuestionResponse> questions = quiz.getQuestions().stream()
+                .map(q -> new QuestionResponse(
+                        q.getId(),
+                        q.getQuestionText(),
+                        q.getType(),
+                        q.getPoints(),
+                        q.getOptions().stream()
+                                .map(o -> new OptionResponse(o.getId(), o.getOptionText(), o.getOptionIndex()))
+                                .collect(Collectors.toList()),
+                        includeAnswers ? q.getCorrectAnswerIndex() : null
+                ))
                 .collect(Collectors.toList());
-    }
 
-    @Override
-    public QuizDetailDto getQuizById(Long quizId) {
-        Quiz quiz = quizRepository.findById(quizId)
-                .orElseThrow(() -> new RuntimeException("Quiz not found"));
-
-        return convertToDetailDto(quiz);
-    }
-
-    @Override
-    @Transactional
-    public QuizResponseDto updateQuiz(Long quizId, QuizCreationDto dto) {
-        Quiz quiz = quizRepository.findById(quizId)
-                .orElseThrow(() -> new RuntimeException("Quiz not found"));
-
-        List<Question> questions = questionRepository.findAllById(dto.questionIds());
-
-        quiz.setTitle(dto.title());
-        quiz.setDescription(dto.description());
-        quiz.setCategory(dto.category());
-        quiz.setDifficulty(dto.difficulty());
-        quiz.setXpReward(dto.xpReward());
-        quiz.setTimeLimit(dto.timeLimit());
-        quiz.setQuestions(questions);
-
-        quiz = quizRepository.save(quiz);
-
-        return convertToResponseDto(quiz);
-    }
-
-    @Override
-    @Transactional
-    public void deleteQuiz(Long quizId) {
-        if (!quizRepository.existsById(quizId)) {
-            throw new RuntimeException("Quiz not found");
-        }
-        quizRepository.deleteById(quizId);
-    }
-
-    @Override
-    @Transactional
-    public QuizResultDto submitQuiz(Long userId, QuizSubmissionDto submission) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Profile profile = profileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Profile not found"));
-
-        Quiz quiz = quizRepository.findById(submission.quizId())
-                .orElseThrow(() -> new RuntimeException("Quiz not found"));
-
-        // Calculate score
-        int score = 0;
-        int xpEarned = 0;
-
-        for (Question question : quiz.getQuestions()) {
-            Character userAnswer = submission.answers().get(question.getId());
-            if (userAnswer != null && userAnswer.equals(question.getAnswer())) {
-                score++;
-                xpEarned += calculateXpForQuestion(question.getDifficulty());
-            }
-        }
-
-        int totalQuestions = quiz.getQuestions().size();
-        double percentage = (score * 100.0) / totalQuestions;
-        boolean passed = percentage >= 70; // 70% pass rate
-
-        // If passed, award bonus XP
-        if (passed) {
-            xpEarned += quiz.getXpReward();
-        }
-
-        // Save attempt
-        QuizAttempt attempt = QuizAttempt.builder()
-                .user(user)
-                .quiz(quiz)
-                .userAnswers(submission.answers())
-                .score(score)
-                .totalQuestions(totalQuestions)
-                .xpEarned(xpEarned)
-                .passed(passed)
-                .build();
-
-        quizAttemptRepository.save(attempt);
-
-        // Update user XP
-        profile.setXp(profile.getXp() + xpEarned);
-        profileRepository.save(profile);
-
-        return new QuizResultDto(score, totalQuestions, xpEarned, passed, percentage);
-    }
-
-    @Override
-    public List<QuizResponseDto> getQuizzesByCategory(QuestionCategory category) {
-        return quizRepository.findByCategory(category).stream()
-                .map(this::convertToResponseDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<QuizAttempt> getUserAttempts(Long userId) {
-        return quizAttemptRepository.findByUserId(userId);
-    }
-
-    private int calculateXpForQuestion(Level difficulty) {
-        return switch (difficulty) {
-            case BEGINNER -> 5;
-            case INTERMEDIATE -> 10;
-            case ADVANCED -> 20;
-            case EXPERT -> 30;
-        };
-    }
-
-    private QuizResponseDto convertToResponseDto(Quiz quiz) {
-        return new QuizResponseDto(
+        return new QuizResponse(
                 quiz.getId(),
                 quiz.getTitle(),
                 quiz.getDescription(),
                 quiz.getCategory(),
-                quiz.getDifficulty(),
-                quiz.getXpReward(),
                 quiz.getTimeLimit(),
+                quiz.getPassingScore(),
+                quiz.getXpReward(),
                 quiz.getQuestions().size(),
-                quiz.getCreatedAt()
-        );
-    }
-
-    private QuizDetailDto convertToDetailDto(Quiz quiz) {
-        List<QuestionCreationRequestDto> questions = quiz.getQuestions().stream()
-                .map(q -> new QuestionCreationRequestDto(
-                        q.getQuestionText(),
-                        q.getOptions(),
-                        q.getAnswer(),
-                        q.getCategory(),
-                        q.getDifficulty()
-                ))
-                .collect(Collectors.toList());
-
-        return new QuizDetailDto(
-                quiz.getId(),
-                quiz.getTitle(),
-                quiz.getDescription(),
-                quiz.getXpReward(),
-                quiz.getTimeLimit(),
+                quiz.getCreatedBy().getId(),
+                quiz.getCreatedBy().getUsername(),
+                quiz.getCreatedAt(),
+                quiz.getUpdatedAt(),
                 questions
         );
+    }
+    @Override
+    public Page<QuizResponse> getAllQuizzes(int page, int size) {
+        return null;
+    }
+
+    @Override
+    public QuizResponse getQuizById(Long id, boolean includeAnswers) {
+        return null;
+    }
+
+    @Override
+    public void deleteQuiz(Long id) {
+
     }
 }
