@@ -1,67 +1,71 @@
 package com.habeeb.p2plearn.controllers;
 
-import com.habeeb.p2plearn.dto.*;
+import com.habeeb.p2plearn.dto.QuizResponse;
+import com.habeeb.p2plearn.dto.QuizResultResponse;
+import com.habeeb.p2plearn.dto.QuizSubmission;
 import com.habeeb.p2plearn.models.QuestionCategory;
-import com.habeeb.p2plearn.models.QuizAttempt;
-import com.habeeb.p2plearn.services.QuizService;
+import com.habeeb.p2plearn.models.User;
+import com.habeeb.p2plearn.services.AuthServiceImpl;
+import com.habeeb.p2plearn.services.QuizServiceImpl;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/quizzes")
-public class QuizController {
+public class QuizController{
+    private final AuthServiceImpl authService;
+    private final QuizServiceImpl quizService;
 
-    private final QuizService quizService;
+    @GetMapping()
+    public ResponseEntity<?> getAllQuizzes(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(required = false)QuestionCategory category
+            ){
+        Page<QuizResponse> quizPage;
+        if(category != null){
+            quizPage = quizService.getQuizzesByCategory(category, page, size);
+        }else{
+            quizPage = quizService.getAllQuizzesForUsers(page, size);
+        }
+        Map<String , Object> response = new HashMap<>();
+        response.put("quizzes",quizPage.getContent());
+        response.put("totalPages",quizPage.getTotalPages());
+        response.put("totalItems",quizPage.getTotalElements());
+        response.put("currentPage",quizPage.getNumber());
+        return ResponseEntity.ok(response);
 
-    public QuizController(QuizService quizService) {
-        this.quizService = quizService;
     }
-
-    @PostMapping
-    public ResponseEntity<QuizResponseDto> createQuiz(@RequestBody QuizCreationDto dto) {
-        return ResponseEntity.ok(quizService.createQuiz(dto));
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getQuiz(@PathVariable Long id) {
+        try {
+            QuizResponse response = quizService.getQuizById(id, false);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
     }
+    @PostMapping("/{id}/submit")
+    public ResponseEntity<?> submitQuiz(
+            @PathVariable Long id,
+            @RequestBody QuizSubmission submission
+    ) {
+        User user = authService.getCurrentUser();
 
-    @GetMapping
-    public ResponseEntity<List<QuizResponseDto>> getAllQuizzes() {
-        return ResponseEntity.ok(quizService.getAllQuizzes());
-    }
-
-    @GetMapping("/{quizId}")
-    public ResponseEntity<QuizDetailDto> getQuizById(@PathVariable Long quizId) {
-        return ResponseEntity.ok(quizService.getQuizById(quizId));
-    }
-
-    @PutMapping("/{quizId}")
-    public ResponseEntity<QuizResponseDto> updateQuiz(
-            @PathVariable Long quizId,
-            @RequestBody QuizCreationDto dto) {
-        return ResponseEntity.ok(quizService.updateQuiz(quizId, dto));
-    }
-
-    @DeleteMapping("/{quizId}")
-    public ResponseEntity<String> deleteQuiz(@PathVariable Long quizId) {
-        quizService.deleteQuiz(quizId);
-        return ResponseEntity.ok("Quiz deleted successfully");
-    }
-
-    @PostMapping("/submit")
-    public ResponseEntity<QuizResultDto> submitQuiz(
-            @RequestParam Long userId,
-            @RequestBody QuizSubmissionDto submission) {
-        return ResponseEntity.ok(quizService.submitQuiz(userId, submission));
-    }
-
-    @GetMapping("/category/{category}")
-    public ResponseEntity<List<QuizResponseDto>> getQuizzesByCategory(
-            @PathVariable QuestionCategory category) {
-        return ResponseEntity.ok(quizService.getQuizzesByCategory(category));
-    }
-
-    @GetMapping("/user/{userId}/attempts")
-    public ResponseEntity<List<QuizAttempt>> getUserAttempts(@PathVariable Long userId) {
-        return ResponseEntity.ok(quizService.getUserAttempts(userId));
+        try {
+            QuizResultResponse result = quizService.submitQuiz(id, user.getId(), submission);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        }
     }
 }

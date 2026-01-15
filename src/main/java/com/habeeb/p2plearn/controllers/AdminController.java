@@ -2,14 +2,14 @@ package com.habeeb.p2plearn.controllers;
 
 import com.habeeb.p2plearn.dto.ArticlePost;
 import com.habeeb.p2plearn.dto.ArticleResponse;
+import com.habeeb.p2plearn.dto.QuizPost;
+import com.habeeb.p2plearn.dto.QuizResponse;
 import com.habeeb.p2plearn.models.ImageTypes;
 import com.habeeb.p2plearn.models.User;
-import com.habeeb.p2plearn.services.AdminServiceImpl;
-import com.habeeb.p2plearn.services.AuthServiceImpl;
-import com.habeeb.p2plearn.services.FileStorageServiceImpl;
-import com.habeeb.p2plearn.services.SessionService;
+import com.habeeb.p2plearn.services.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @RestController
@@ -27,7 +29,7 @@ public class AdminController {
     private final AdminServiceImpl adminService;
     private final AuthServiceImpl authService;
     private final FileStorageServiceImpl fileStorageService;
-
+    private final QuizServiceImpl quizService;
 
 
     @GetMapping("/home")
@@ -140,6 +142,41 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to delete user not an admin");
 
     }
+    @PostMapping("/quizzes")
+    public ResponseEntity<?> createQuiz(@RequestBody QuizPost quizPost){
+        User u = authService.getCurrentUser();
+        if(!u.isAdmin()){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Admin privileges required");
+        }
+        try {
+            QuizResponse response = quizService.createQuiz(quizPost, u.getId());
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        }catch(Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("failed to create quiz "+ e.getMessage());
+        }
+
+    }
+    @GetMapping("/quizzes/all")
+    public ResponseEntity<?> getAllQuizzes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        User user = authService.getCurrentUser();
+        if (!user.isAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Admin access required");
+        }
+
+        Page<QuizResponse> quizPage = quizService.getAllQuizzes(page, size);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("quizzes", quizPage.getContent());
+        response.put("currentPage", quizPage.getNumber());
+        response.put("totalItems", quizPage.getTotalElements());
+        response.put("totalPages", quizPage.getTotalPages());
+
+        return ResponseEntity.ok(response);
+    }
     @PostMapping("/revoke/{userId}")
     public ResponseEntity<?> removeAdmin(@PathVariable Long userId){
         User currentUser = authService.getCurrentUser();
@@ -157,6 +194,57 @@ public class AdminController {
         try {
             adminService.removeAdmin(userId);
             return ResponseEntity.ok("Admin privileges removed");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+    @GetMapping("/quiz/{id}")
+    public ResponseEntity<?> getQuiz(@PathVariable Long id) {
+        User user = authService.getCurrentUser();
+        if (!user.isAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Admin access required");
+        }
+
+        try {
+            QuizResponse response = quizService.getQuizById(id, true);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+    @PutMapping("/quiz/{id}")
+    public ResponseEntity<?> updateQuiz(
+            @PathVariable Long id,
+            @RequestBody QuizPost quizPost
+    ) {
+        User user = authService.getCurrentUser();
+        if (!user.isAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Admin access required");
+        }
+
+        try {
+            QuizResponse response = quizService.updateQuiz(id, quizPost);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+    @GetMapping("/quiz/{id}/stats")
+    public ResponseEntity<?> getQuizStats(@PathVariable Long id) {
+        User user = authService.getCurrentUser();
+        if (!user.isAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Admin access required");
+        }
+
+        try {
+            Map<String, Object> stats = quizService.getQuizStatistics(id);
+            return ResponseEntity.ok(stats);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(e.getMessage());

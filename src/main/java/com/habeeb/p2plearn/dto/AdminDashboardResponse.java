@@ -16,9 +16,9 @@ import java.util.List;
 public class AdminDashboardResponse {
     private List<UserDto> users;
     private List<ArticleResponse> articles;
-    private List<QuizResponseDto> quizzes;
+    private List<QuizResponse> quizzes;
 
-    public AdminDashboardResponse(List<UserDto> users, List<ArticleResponse> articles, List<QuizResponseDto> quizzes) {
+    public AdminDashboardResponse(List<UserDto> users, List<ArticleResponse> articles, List<QuizResponse> quizzes) {
         this.users = users;
         this.articles = articles;
         this.quizzes = quizzes;

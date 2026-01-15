@@ -61,7 +61,7 @@ public class AdminServiceImpl implements AdminService{
     public AdminDashboardResponse getDashboardData() {
         List<UserDto> users = userService.getAllUsers();
         List<ArticleResponse> articles = articleService.getAllArticles();
-        List<QuizResponseDto> quizzes = quizService.getAllQuizzes();
+        List<QuizResponse> quizzes = quizService.getAllQuizzes(1,1000000).getContent();
         return new AdminDashboardResponse(users , articles , quizzes);
     }
 
