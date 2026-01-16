@@ -26,41 +26,42 @@ public class QuizServiceImpl implements QuizService {
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
 
-@Transactional
+    @Transactional
     @Override
     public QuizResponse createQuiz(QuizPost quizPost, Long userId) {
-    User u = userRepository.findById(userId).orElseThrow(()->new RuntimeException("User not found"));
-    Quiz quiz = new Quiz();
-    quiz.setTitle(quizPost.title());
-    quiz.setDescription(quizPost.description());
-    quiz.setCategory(quizPost.category());
-    quiz.setTimeLimit(quizPost.timeLimit());
-    quiz.setPassingScore(quizPost.passingScore());
-    quiz.setXpReward(quizPost.xpReward());
-    quiz.setCreatedBy(u);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-    for (QuestionPost qp : quizPost.questions()) {
-        Question question = new Question();
-        question.setQuiz(quiz);
-        question.setQuestionText(qp.questionText());
-        question.setType(qp.type());
-        question.setPoints(qp.points());
-        question.setCorrectAnswerIndex(qp.correctAnswerIndex());
+        Quiz quiz = new Quiz();
+        quiz.setTitle(quizPost.title());
+        quiz.setDescription(quizPost.description());
+        quiz.setCategory(quizPost.category());
+        quiz.setTimeLimit(quizPost.timeLimit());
+        quiz.setPassingScore(quizPost.passingScore());
+        quiz.setXpReward(quizPost.xpReward());
+        quiz.setCreatedBy(user);
 
-        // Add options
-        for (int i = 0; i < qp.options().size(); i++) {
-            QuestionOption option = new QuestionOption();
-            option.setQuestion(question);
-            option.setOptionText(qp.options().get(i));
-            option.setOptionIndex(i);
-            question.getOptions().add(option);
+        // Use helper methods for proper bidirectional relationship
+        for (QuestionPost qp : quizPost.questions()) {
+            Question question = new Question();
+            question.setQuestionText(qp.questionText());
+            question.setType(QuestionType.valueOf(qp.type().toString()));
+            question.setPoints(qp.points());
+            question.setCorrectAnswerIndex(qp.correctAnswerIndex());
+
+            // Add options using helper method
+            for (int i = 0; i < qp.options().size(); i++) {
+                QuestionOption option = new QuestionOption();
+                option.setOptionText(qp.options().get(i));
+                option.setOptionIndex(i);
+                question.addOption(option);
+            }
+
+            quiz.addQuestion(question);
         }
 
-        quiz.getQuestions().add(question);
-    }
-
-    Quiz saved = quizRepository.save(quiz);
-    return convertToResponse(saved, true);
+        Quiz saved = quizRepository.save(quiz);
+        return convertToResponse(saved, true);
     }
     private QuizResponse convertToResponse(Quiz quiz, boolean includeAnswers) {
         List<QuestionResponse> questions = quiz.getQuestions().stream()

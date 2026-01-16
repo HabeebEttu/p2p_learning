@@ -27,14 +27,28 @@ public class Question {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private QuestionType type; // MULTIPLE_CHOICE, TRUE_FALSE
+    private QuestionType type; // MULTIPLE_CHOICE, TRUE_FALSE, etc.
 
     @Column(nullable = false)
     private Integer points;
 
+    @Column(nullable = false)
+    private Integer correctAnswerIndex;
+
+    // IMPORTANT: Add cascade and orphanRemoval
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("optionIndex ASC")
     private List<QuestionOption> options = new ArrayList<>();
 
-    @Column(nullable = false)
-    private Integer correctAnswerIndex; // Index of correct option
+    // Helper method to add option
+    public void addOption(QuestionOption option) {
+        options.add(option);
+        option.setQuestion(this);
+    }
+
+    // Helper method to remove option
+    public void removeOption(QuestionOption option) {
+        options.remove(option);
+        option.setQuestion(null);
+    }
 }

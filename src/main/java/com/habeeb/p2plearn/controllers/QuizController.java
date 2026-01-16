@@ -68,4 +68,8 @@ public class QuizController{
                     .body(e.getMessage());
         }
     }
+    @GetMapping("/categories/get")
+    public ResponseEntity<?> getCategories(){
+        return ResponseEntity.ok(QuestionCategory.values());
+    }
 }

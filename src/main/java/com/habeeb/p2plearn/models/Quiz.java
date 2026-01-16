@@ -1,10 +1,11 @@
 package com.habeeb.p2plearn.models;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -26,41 +27,45 @@ public class Quiz {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private QuestionCategory category;
 
     @Column(nullable = false)
     private Integer timeLimit; // in minutes
 
     @Column(nullable = false)
-    private Integer passingScore; // percentage (e.g., 70 for 70%)
+    private Integer passingScore; // percentage
 
     @Column(nullable = false)
     private Integer xpReward;
-
+    @Enumerated(EnumType.STRING)
+    private Level difficulty;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     private List<Question> questions = new ArrayList<>();
 
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
-    @Column(nullable = false)
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    @UpdateTimestamp
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+    // Helper method to add question
+    public void addQuestion(Question question) {
+        questions.add(question);
+        question.setQuiz(this);
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
+    // Helper method to remove question
+    public void removeQuestion(Question question) {
+        questions.remove(question);
+        question.setQuiz(null);
     }
 }
