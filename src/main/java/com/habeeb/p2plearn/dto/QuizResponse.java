@@ -8,6 +8,7 @@ import java.util.List;
 
 public record QuizResponse(
         Long id,
+        String creatorUsername,
         String title,
         String description,
         QuestionCategory category,

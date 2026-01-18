@@ -8,4 +8,5 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> 
     List<QuizAttempt> findByUserId(Long userId);
     List<QuizAttempt> findByQuizId(Long quizId);
     boolean existsByUserIdAndQuizId(Long userId, Long quizId);
+    Long countByQuizId(Long id);
 }

@@ -79,6 +79,7 @@ public class QuizServiceImpl implements QuizService {
 
         return new QuizResponse(
                 quiz.getId(),
+                quiz.getCreatedBy().getUsername(),
                 quiz.getTitle(),
                 quiz.getDescription(),
                 quiz.getCategory(),
@@ -111,6 +112,12 @@ public class QuizServiceImpl implements QuizService {
     @Override
     public void deleteQuiz(Long id) {
         quizRepository.deleteById(id);
+        long attemptCount = quizAttemptRepository.countByQuizId(id);
+        if (attemptCount > 0) {
+            throw new RuntimeException(
+                    "Cannot delete quiz. " + attemptCount + " users have already taken it."
+            );
+        }
     }
 
     @Override
@@ -186,6 +193,9 @@ public class QuizServiceImpl implements QuizService {
         attempt.setPassed(passed);
         attempt.setXpAwarded(xpAwarded);
         attempt.setTimeTaken(0);
+        attempt.setCorrectAnswers(correctAnswers);
+        attempt.setTotalQuestions(quiz.getQuestions().size());
+        attempt.setXpEarned(xpAwarded);
 
         QuizAttempt savedAttempt = quizAttemptRepository.save(attempt);
 

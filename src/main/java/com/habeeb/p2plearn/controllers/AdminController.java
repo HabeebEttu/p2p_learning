@@ -234,6 +234,21 @@ public class AdminController {
                     .body(e.getMessage());
         }
     }
+    @DeleteMapping("/quizzes/{quizId}")
+    public ResponseEntity<?> deleteQuiz(@PathVariable Long quizId){
+        User user = authService.getCurrentUser();
+        if (!user.isAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Admin access required");
+        }
+        try {
+            quizService.deleteQuiz(quizId);
+            return ResponseEntity.ok("Quiz deleted successfully");
+        }catch(RuntimeException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
     @GetMapping("/quiz/{id}/stats")
     public ResponseEntity<?> getQuizStats(@PathVariable Long id) {
         User user = authService.getCurrentUser();

@@ -25,15 +25,15 @@ public class QuizController{
 
     @GetMapping()
     public ResponseEntity<?> getAllQuizzes(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false)QuestionCategory category
             ){
         Page<QuizResponse> quizPage;
         if(category != null){
             quizPage = quizService.getQuizzesByCategory(category, page, size);
         }else{
-            quizPage = quizService.getAllQuizzesForUsers(page, size);
+            quizPage = quizService.getAllQuizzes(page, size);
         }
         Map<String , Object> response = new HashMap<>();
         response.put("quizzes",quizPage.getContent());
