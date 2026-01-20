@@ -9,6 +9,8 @@ import com.habeeb.p2plearn.models.User;
 import com.habeeb.p2plearn.services.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -30,7 +32,7 @@ public class AdminController {
     private final AuthServiceImpl authService;
     private final FileStorageServiceImpl fileStorageService;
     private final QuizServiceImpl quizService;
-
+    private static final Logger log = LoggerFactory.getLogger(AdminController.class);
 
     @GetMapping("/home")
     public ResponseEntity<?> getDashboardData(){
@@ -216,24 +218,34 @@ public class AdminController {
         }
     }
     @PutMapping("/quiz/{id}")
-    public ResponseEntity<?> updateQuiz(
-            @PathVariable Long id,
-            @RequestBody QuizPost quizPost
-    ) {
-        User user = authService.getCurrentUser();
-        if (!user.isAdmin()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("Admin access required");
-        }
+public ResponseEntity<?> updateQuiz(
+        @PathVariable Long id,
+        @RequestBody QuizPost quizPost
+) {
+    log.info("=== QUIZ UPDATE REQUEST RECEIVED ===");
+    log.info("Quiz ID: {}", id);
+    log.info("Request body: {}", quizPost);
 
-        try {
-            QuizResponse response = quizService.updateQuiz(id, quizPost);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(e.getMessage());
-        }
+    User user = authService.getCurrentUser();
+    log.info("Current user: {}", user.getUsername());
+    log.info("Is admin: {}", user.isAdmin());
+
+    if (!user.isAdmin()) {
+        log.error("User {} is not an admin", user.getUsername());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("Admin access required");
     }
+
+    try {
+        QuizResponse response = quizService.updateQuiz(id, quizPost);
+        log.info("Quiz update successful");
+        return ResponseEntity.ok(response);
+    } catch (RuntimeException e) {
+        log.error("Quiz update failed: {}", e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(e.getMessage());
+    }
+}
     @DeleteMapping("/quizzes/{quizId}")
     public ResponseEntity<?> deleteQuiz(@PathVariable Long quizId){
         User user = authService.getCurrentUser();
